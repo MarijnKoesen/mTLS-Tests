@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 )
 
@@ -22,12 +23,27 @@ func handleError(err error) {
 }
 
 func main() {
-	absPathServerCrt, err := filepath.Abs("certs/server.crt")
+	serverCrt := os.Getenv("SERVER_CRT")
+	if serverCrt == "" {
+		serverCrt = "certs/server.crt"
+	}
+
+	serverKey := os.Getenv("SERVER_KEY")
+	if serverKey == "" {
+		serverKey = "certs/server.key"
+	}
+
+	caCrt := os.Getenv("CA_CRT")
+	if caCrt == "" {
+		caCrt = "certs/server.crt"
+	}
+
+	absPathServerCrt, err := filepath.Abs(serverCrt)
 	handleError(err)
-	absPathServerKey, err := filepath.Abs("certs/server.key")
+	absPathServerKey, err := filepath.Abs(serverKey)
 	handleError(err)
 
-	clientCACert, err := ioutil.ReadFile(absPathServerCrt)
+	clientCACert, err := ioutil.ReadFile(caCrt)
 	handleError(err)
 
 	clientCertPool := x509.NewCertPool()

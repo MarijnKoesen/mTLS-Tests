@@ -3,10 +3,12 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 )
 
@@ -17,11 +19,31 @@ func handleError(err error) {
 }
 
 func main() {
-	absPathClientCrt, err := filepath.Abs("certs/client.crt")
+	clientCrt := os.Getenv("CLIENT_CRT")
+	if clientCrt == "" {
+		clientCrt = "certs/client.crt"
+	}
+
+	clientKey := os.Getenv("CLIENT_KEY")
+	if clientKey == "" {
+		clientKey = "certs/client.key"
+	}
+
+	caPath := os.Getenv("CA_CRT")
+	if caPath == "" {
+		caPath = "certs/server.crt"
+	}
+
+	url := os.Getenv("SERVER_URL")
+	if url == "" {
+		url = "https://localhost"
+	}
+
+	absPathClientCrt, err := filepath.Abs(clientCrt)
 	handleError(err)
-	absPathClientKey, err := filepath.Abs("certs/client.key")
+	absPathClientKey, err := filepath.Abs(clientKey)
 	handleError(err)
-	absPathServerCrt, err := filepath.Abs("certs/server.crt")
+	caCrt, err := filepath.Abs(caPath)
 	handleError(err)
 
 	cert, err := tls.LoadX509KeyPair(absPathClientCrt, absPathClientKey)
@@ -29,11 +51,13 @@ func main() {
 		log.Fatalln("Unable to load cert", err)
 	}
 
+	fmt.Printf("Loaded certificate: %s\n", base64.StdEncoding.EncodeToString(cert.Certificate[0]))
+
 	roots := x509.NewCertPool()
 
 	// We're going to load the server cert and add all the intermediates and CA from that.
 	// Alternatively if we have the CA directly we could call AppendCertificate method
-	fakeCA, err := ioutil.ReadFile(absPathServerCrt)
+	fakeCA, err := ioutil.ReadFile(caCrt)
 	if err != nil {
 		log.Println(err)
 		return
@@ -53,7 +77,7 @@ func main() {
 	tr := &http.Transport{TLSClientConfig: tlsConf}
 	client := &http.Client{Transport: tr}
 
-	resp, err := client.Get("https://localhost")
+	resp, err := client.Get(url)
 	if err != nil {
 		log.Println(err)
 		return

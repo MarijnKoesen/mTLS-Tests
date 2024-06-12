@@ -1,0 +1,66 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: some-client-cert
+  namespace: mtls-server
+spec:
+  secretName: some-client-secret
+  isCA: false
+  usages:
+#    - server auth
+    - client auth
+#  dnsNames:
+#    - server.mtls-server
+#    - server
+  emailAddresses:
+    - your@email.com
+  issuerRef:
+    name: billing-ca-issuer
+    kind: Issuer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+  namespace: mtls-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: client
+  template:
+    metadata:
+      labels:
+        name: client
+    spec:
+      containers:
+        - image: marijnkoesen/mtls-test:v7
+          imagePullPolicy: IfNotPresent
+          name: client
+          command:
+            - /client
+          env:
+            - name: CLIENT_CRT
+              value: /certs/tls.crt
+            - name: CLIENT_KEY
+              value: /certs/tls.key
+            - name: CA_CRT
+              value: /certs/ca.crt
+            - name: SERVER_URL
+              value: "https://server.mtls-server/"
+          resources:
+            requests:
+              cpu: 250m
+              memory: 250Mi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+          volumeMounts:
+            - name: client-cert
+              mountPath: /certs
+      volumes:
+        - name: client-cert
+          secret:
+            secretName: some-client-secret

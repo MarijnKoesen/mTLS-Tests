@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mtls-server
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: selfsigned-ca
+  namespace: mtls-server
+spec:
+  isCA: true
+  commonName: selfsigned-ca
+  secretName: root-secret
+  issuerRef:
+    name: my-selfsigned-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: billing-ca-issuer
+  namespace: mtls-server
+spec:
+  ca:
+    secretName: root-secret
