@@ -1,5 +1,31 @@
 # Setup Guide
 
+This is a simple POC for using mTLS in kubernetes using `cert-manager`.
+
+### Running
+
+Components:
+
+* `/server/` the server, it accepts clients that are defined in `ALLOWED_CLIENTS`
+* `/client/` the client, it connects to `server`
+* `/generate_certs.sh` this generates certificates for local use
+* `/deployment/cert-manager/` the self-signing ClusterIssuer 
+* `/deployment/base.yaml` the `Namespace`, `Issuer` and `CA`
+* `/deployment/{server,client}.yaml` the client and server deployments
+
+To run local:
+```
+./generate_certs.sh
+go run server/server.go
+go run client/client.go
+```
+
+To deploy in k8s:
+```
+kubectl apply -f deployment/
+```
+
+
 ### Creating files
 
 All following certs use armoured output ('.crt' aka '.pem') so are readable
