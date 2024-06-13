@@ -36,7 +36,7 @@ spec:
         name: server
     spec:
       containers:
-        - image: marijnkoesen/mtls-test:v7
+        - image: marijnkoesen/mtls-test:v10
           imagePullPolicy: IfNotPresent
           args:
             - /server
@@ -47,6 +47,8 @@ spec:
               value: /certs/tls.key
             - name: CA_CRT
               value: /certs/ca.crt
+            - name: ALLOWED_CLIENTS
+              value: "client@example.com,client2@example.com"
           name: server
           resources:
             requests:

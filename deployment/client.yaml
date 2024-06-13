@@ -8,13 +8,9 @@ spec:
   secretName: some-client-secret
   isCA: false
   usages:
-#    - server auth
     - client auth
-#  dnsNames:
-#    - server.mtls-server
-#    - server
   emailAddresses:
-    - your@email.com
+    - client@example.com
   issuerRef:
     name: billing-ca-issuer
     kind: Issuer
@@ -36,7 +32,7 @@ spec:
         name: client
     spec:
       containers:
-        - image: marijnkoesen/mtls-test:v7
+        - image: marijnkoesen/mtls-test:v10
           imagePullPolicy: IfNotPresent
           name: client
           command:
